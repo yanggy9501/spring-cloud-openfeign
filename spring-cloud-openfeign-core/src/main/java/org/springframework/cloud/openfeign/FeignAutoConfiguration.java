@@ -16,14 +16,6 @@
 
 package org.springframework.cloud.openfeign;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PreDestroy;
-
 import feign.Client;
 import feign.Feign;
 import feign.httpclient.ApacheHttpClient;
@@ -34,7 +26,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.client.CloseableHttpClient;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -52,6 +43,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import javax.annotation.PreDestroy;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author Spencer Gibb
  * @author Julien Roy
@@ -61,6 +59,7 @@ import org.springframework.context.annotation.Import;
 @EnableConfigurationProperties({ FeignClientProperties.class,
 		FeignHttpClientProperties.class })
 @Import(DefaultGzipDecoderConfiguration.class)
+/**xxx: Feign 客户端主动配置类*/
 public class FeignAutoConfiguration {
 
 	@Autowired(required = false)

@@ -16,17 +16,6 @@
 
 package org.springframework.cloud.openfeign;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -52,6 +41,13 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.*;
+
 /**
  * ImportBeanDefinitionRegistrar：用于向容器中注入bean 关注其 registerBeanDefinitions 方法
  *
@@ -60,6 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Venil Noronha
  * @author Gang Li
  */
+// feign 客户端注册器，注册扫描 feign 注解的 BeanPostProcessor
 class FeignClientsRegistrar
 		implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
 
@@ -141,7 +138,7 @@ class FeignClientsRegistrar
 
 	/**
 	 * bean注入的 入口函数
-	 * @param metadata
+	 * @param metadata @EnableFeignClients 的注解消息
 	 * @param registry
 	 */
 	@Override
@@ -163,7 +160,7 @@ class FeignClientsRegistrar
 		// ClassPath Scanner
 		ClassPathScanningCandidateComponentProvider scanner = getScanner();
 		scanner.setResourceLoader(this.resourceLoader);
-		// 接收 @EnableFeignClients(basePackages = {"com.itheima.driver.feign"})
+		// 接收 @EnableFeignClients(basePackages = {"com.xxx.feign"})
 		Set<String> basePackages;
 		Map<String, Object> attrs = metadata
 				.getAnnotationAttributes(EnableFeignClients.class.getName());
@@ -172,6 +169,7 @@ class FeignClientsRegistrar
 		final Class<?>[] clients = attrs == null ? null
 				: (Class<?>[]) attrs.get("clients");
 		if (clients == null || clients.length == 0) {
+			// 设置扫描的注解
 			scanner.addIncludeFilter(annotationTypeFilter);
 			// 获取 @EnableFeignClients中配置的 @FeignClient 接口扫描路径
 			basePackages = getBasePackages(metadata);
@@ -212,8 +210,7 @@ class FeignClientsRegistrar
 					Map<String, Object> attributes = annotationMetadata
 							.getAnnotationAttributes(
 									FeignClient.class.getCanonicalName());
-					// 获取@FeignClient(value =
-					// "hailtaxi-driver"),name属性,name属性和value属性是相同的含义,都是配置服务名
+					// 获取@FeignClient(value ="服务名"), name属性和value属性是相同的含义, 都是配置服务名
 					String name = getClientName(attributes);// name = hailtaxi-driver
 					registerClientConfiguration(registry, name,
 							attributes.get("configuration"));
@@ -245,29 +242,31 @@ class FeignClientsRegistrar
 	/**
 	 * 向容器中注册 每个标注了 @FeignClient 的接口bean
 	 * @param registry
-	 * @param annotationMetadata
-	 * @param attributes
+	 * @param annotationMetadata Feign 客户端类的所有注解信息
+	 * @param attributes @FeignClient 注解的所有属性信息
 	 */
 	private void registerFeignClient(BeanDefinitionRegistry registry,
 			AnnotationMetadata annotationMetadata, Map<String, Object> attributes) {
 		// 接口全路径
-		String className = annotationMetadata.getClassName();// className=com.itheima.driver.feign.DriverFeign
+		String className = annotationMetadata.getClassName();// className=com.xxx.feign.MyFeignService
 		/**
-		 * 每个标注了@FeignClient 的接口，真正向容器中注册的其实是一个 FeignClientFactoryBean 1、创建
-		 * FeignClientFactoryBean的 BeanDefinition 2、向 BeanDefinition
-		 * 中填充相关属性，属性来源于接口上@FeignClient的属性信息
+		 * 每个标注了@FeignClient 的接口，真正向容器中注册的其实是一个 FeignClientFactoryBean
+		 * 1、创建 FeignClientFactoryBean(FactoryBean)的 BeanDefinition
+		 * 2、向 BeanDefinition中填充相关属性，属性来源于接口上@FeignClient的属性信息
+		 * @see FeignClientFactoryBean#getObject()
 		 */
 		BeanDefinitionBuilder definition = BeanDefinitionBuilder
 				.genericBeanDefinition(FeignClientFactoryBean.class);
 		validate(attributes);// 验证fallback和fallbackFactory是不是接口
 
+		// 将 FeignClient 注解信息 -> FeignClientFactoryBean 的bean定义中
 		definition.addPropertyValue("url", getUrl(attributes));
 		definition.addPropertyValue("path", getPath(attributes));
 		String name = getName(attributes);
 		definition.addPropertyValue("name", name);
 		String contextId = getContextId(attributes);
 		definition.addPropertyValue("contextId", contextId);
-		definition.addPropertyValue("type", className); // 把接口全路径也设置到 definition
+		definition.addPropertyValue("type", className); // 把接口全路径也设置到 definition，动态代理生成代理类
 		definition.addPropertyValue("decode404", attributes.get("decode404"));
 		definition.addPropertyValue("fallback", attributes.get("fallback"));
 		definition.addPropertyValue("fallbackFactory", attributes.get("fallbackFactory"));
@@ -289,12 +288,10 @@ class FeignClientsRegistrar
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 		/**
 		 * 由于标注了@FeignClient的每个接口真正向容器中注册时注册的是与该接口相关的：FeignClientFactoryBean 而
-		 * FeignClientFactoryBean 实现了 FactoryBean 接口，也就是说当需要从容器中获取
-		 * 这个bean时，获取出来的bean其实是由它的getObject方法返回的bean
-		 *
+		 * FeignClientFactoryBean 实现了 FactoryBean 接口，也就是说当需要从容器中获取这个bean时，
+		 * 获取出来的bean其实是由它的getObject方法返回的bean
 		 * 所以：下一个入口是： FeignClientFactoryBean#getObject
 		 */
-
 	}
 
 	private void validate(Map<String, Object> attributes) {
@@ -344,6 +341,10 @@ class FeignClientsRegistrar
 		return getPath(path);
 	}
 
+	/**
+	 * 获取基于路径的 bean 扫描器
+	 * @return
+	 */
 	protected ClassPathScanningCandidateComponentProvider getScanner() {
 		return new ClassPathScanningCandidateComponentProvider(false, this.environment) {
 			@Override

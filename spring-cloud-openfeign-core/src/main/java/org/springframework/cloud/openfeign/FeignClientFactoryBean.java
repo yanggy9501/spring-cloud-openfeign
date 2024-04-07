@@ -16,22 +16,11 @@
 
 package org.springframework.cloud.openfeign;
 
-import java.util.Map;
-import java.util.Objects;
-
-import feign.Client;
-import feign.Contract;
-import feign.Feign;
-import feign.Logger;
-import feign.QueryMapEncoder;
-import feign.Request;
-import feign.RequestInterceptor;
-import feign.Retryer;
+import feign.*;
 import feign.Target.HardCodedTarget;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
@@ -43,6 +32,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Spencer Gibb
@@ -62,22 +54,21 @@ class FeignClientFactoryBean
 	 */
 	private Class<?> type; // 标注了@FeignClient注解的接口 Class
 
-	private String name; // 在该接口上@FeignClient 注解 的 name 属性
+	private String name; // 在该接口上@FeignClient 注解的 name 属性
 
-	private String url; // 在该接口上@FeignClient 注解 的 url 属性
+	private String url; // 在该接口上@FeignClient 注解的 url 属性
 
-	private String contextId; // 在该接口上@FeignClient 注解 的 contextId 属性
+	private String contextId; // 在该接口上@FeignClient 注解的 contextId 属性
 
-	private String path; // 在该接口上@FeignClient 注解 的 path 属性
+	private String path; // 在该接口上@FeignClient 注解的 path 属性
 
-	private boolean decode404; // 在该接口上@FeignClient 注解 的 decode404 属性
+	private boolean decode404; // 在该接口上@FeignClient 注解的 decode404 属性
 
 	private ApplicationContext applicationContext;
 
-	private Class<?> fallback = void.class; // 在该接口上@FeignClient 注解 的 fallback 属性
+	private Class<?> fallback = void.class; // 在该接口上@FeignClient 注解的 fallback 属性
 
-	private Class<?> fallbackFactory = void.class; // 在该接口上@FeignClient 注解 的
-													// fallbackFactory 属性
+	private Class<?> fallbackFactory = void.class; // 在该接口上@FeignClient 注解的 fallbackFactory 属性
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -239,7 +230,7 @@ class FeignClientFactoryBean
 
 	protected <T> T loadBalance(Feign.Builder builder, FeignContext context,
 			HardCodedTarget<T> target) {
-		// 获取feign 客户端，得到的是：LoadBalancerFeignClient loadbalance基于 RibbonLoadBalanced
+		// 获取 feign 客户端，得到的是：LoadBalancerFeignClient loadBalance 基于 RibbonLoadBalanced
 		// 用于执行http请求
 		Client client = getOptional(context, Client.class);
 		if (client != null) {
@@ -263,7 +254,6 @@ class FeignClientFactoryBean
 	 * @return
 	 * @throws Exception
 	 */
-
 	@Override
 	public Object getObject() throws Exception {
 		return getTarget();
@@ -274,6 +264,7 @@ class FeignClientFactoryBean
 	 * @return a {@link Feign} client created with the specified data and the context
 	 * information
 	 */
+	// 获取 feign 客户端的代理对象
 	<T> T getTarget() {
 		/**
 		 * FeignContext注册到容器是在 FeignAutoConfiguration 上完成的; 在初始化FeignContext时，会把
@@ -290,11 +281,8 @@ class FeignClientFactoryBean
 			else {
 				this.url = this.name;
 			}
-			this.url += cleanPath(); // this.url= http://hailtaxi-driver
-			/**
-			 * HardCodedTarget里封装了：接口type Class，服务名称，服务地址url ; 根据 Feign.Builder
-			 * ，FeignContext,HardCodedTarget 构建 返回的对象
-			 */
+			this.url += cleanPath(); // this.url= http://服务名称
+			// HardCodedTarget里封装了：接口typeClass，服务名称，服务地址url; 根据 Feign.Builder,FeignContext,HardCodedTarget 构建返回的对象
 			return (T) loadBalance(builder, context,
 					new HardCodedTarget<>(this.type, this.name, this.url));
 		}
