@@ -58,7 +58,7 @@ class FeignClientFactoryBean
 
 	private String url; // 在该接口上@FeignClient 注解的 url 属性
 
-	private String contextId; // 在该接口上@FeignClient 注解的 contextId 属性
+	private String contextId; // 在该接口上@FeignClient 注解的 contextId 属性，默认 contextId=name
 
 	private String path; // 在该接口上@FeignClient 注解的 path 属性
 
@@ -84,8 +84,8 @@ class FeignClientFactoryBean
 		Feign.Builder builder = get(context, Feign.Builder.class)
 				// required values
 				.logger(logger) // 设置日志
-				.encoder(get(context, Encoder.class)) // 编码设置
-				.decoder(get(context, Decoder.class)) // 解码设置
+				.encoder(get(context, Encoder.class)) // 编码器，从容器中获取
+				.decoder(get(context, Decoder.class)) // 解码器，从容器中获取
 				.contract(get(context, Contract.class));
 		// @formatter:on
 

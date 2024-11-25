@@ -28,6 +28,11 @@ import feign.MethodMetadata;
  * @author Jakub Narloch
  * @author Abhijit Sarkar
  */
+
+/*
+	Feign 方法参数处理器，总两个方法：1.获取当前参数注解类型；2.处理当前参数
+	三个很明显是分别处理@PathVariable、@Header以及@RequestParam注解，请求对象是不需要注解的
+ */
 public interface AnnotatedParameterProcessor {
 
 	/**

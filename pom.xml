@@ -137,7 +137,8 @@
 		<module>spring-cloud-openfeign-core</module>
 		<module>spring-cloud-starter-openfeign</module>
 		<module>docs</module>
-	</modules>
+        <module>my-spring-cloud-openfeign</module>
+    </modules>
 	<profiles>
 		<profile>
 			<id>spring</id>

@@ -25,6 +25,7 @@ import org.springframework.cloud.context.named.NamedContextFactory;
  * @author Spencer Gibb
  * @author Dave Syer
  */
+/** xxx: Feign 容器，每个 Feign 客户端都有自己的独立容器，且都将 Spring 容器作为父亲 */
 public class FeignContext extends NamedContextFactory<FeignClientSpecification> {
 
 	public FeignContext() {
