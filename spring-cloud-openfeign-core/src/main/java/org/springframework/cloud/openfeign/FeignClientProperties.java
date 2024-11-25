@@ -34,6 +34,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * @author Eko Kurniawan Khannedy
  */
+/** xxx：feign client 配置 */
 @ConfigurationProperties("feign.client")
 public class FeignClientProperties {
 
@@ -41,6 +42,9 @@ public class FeignClientProperties {
 
 	private String defaultConfig = "default";
 
+	/**
+	 * feign client 局部配置，针对每个 @FeignClient 进行配置
+	 */
 	private Map<String, FeignClientConfiguration> config = new HashMap<>();
 
 	public boolean isDefaultToProperties() {

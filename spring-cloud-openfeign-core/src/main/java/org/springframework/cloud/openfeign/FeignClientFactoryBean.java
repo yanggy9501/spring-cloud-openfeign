@@ -42,6 +42,7 @@ import java.util.Objects;
  * @author Eko Kurniawan Khannedy
  * @author Gregor Zurowski
  */
+// 代表一个 @FeignClient 的 bean
 class FeignClientFactoryBean
 		implements FactoryBean<Object>, InitializingBean, ApplicationContextAware {
 
@@ -64,6 +65,9 @@ class FeignClientFactoryBean
 
 	private boolean decode404; // 在该接口上@FeignClient 注解的 decode404 属性
 
+	/**
+	 * feign 客户端的 parent 容器，每个都有自己的子容器
+	 */
 	private ApplicationContext applicationContext;
 
 	private Class<?> fallback = void.class; // 在该接口上@FeignClient 注解的 fallback 属性
@@ -80,21 +84,27 @@ class FeignClientFactoryBean
 		FeignLoggerFactory loggerFactory = get(context, FeignLoggerFactory.class);
 		Logger logger = loggerFactory.create(this.type);
 
+		// feign 默认配置
 		// @formatter:off
 		Feign.Builder builder = get(context, Feign.Builder.class)
 				// required values
 				.logger(logger) // 设置日志
-				.encoder(get(context, Encoder.class)) // 编码器，从容器中获取
+				.encoder(get(context, Encoder.class)) // 编码器，从容器中获取：容器注入 bean则全局配置，局部配置 #feign.client.config.【@FeignClient 的name值】.encoder=类的全限定名称
 				.decoder(get(context, Decoder.class)) // 解码器，从容器中获取
+				// 合约器：定义哪些注释和值在接口上有效，@See SpringMvcContract。
+				// @PathVariable、@RequestParam、 @RequestHeader 等参数注解处理， @see AnnotatedParameterProcessor
+				// 将参数对象 Map 化， @see QueryMapEncoder
 				.contract(get(context, Contract.class));
 		// @formatter:on
 
+		// feign 定制化配置
 		configureFeign(context, builder);
 
 		return builder;
 	}
 
 	protected void configureFeign(FeignContext context, Feign.Builder builder) {
+		// 将配置文件 --> bean
 		FeignClientProperties properties = this.applicationContext
 				.getBean(FeignClientProperties.class);
 		if (properties != null) {
@@ -120,6 +130,12 @@ class FeignClientFactoryBean
 		}
 	}
 
+	/**
+	 * 使用配置进行默认配置覆盖
+	 *
+	 * @param context
+	 * @param builder
+	 */
 	protected void configureUsingConfiguration(FeignContext context,
 			Feign.Builder builder) {
 		Logger.Level level = getOptional(context, Logger.Level.class);
@@ -267,14 +283,14 @@ class FeignClientFactoryBean
 	// 获取 feign 客户端的代理对象
 	<T> T getTarget() {
 		/**
-		 * FeignContext注册到容器是在 FeignAutoConfiguration 上完成的; 在初始化FeignContext时，会把
-		 * configurations 放入FeignContext中。 configurations 的来源就是在前面 registerFeignClients
-		 * 方法中 @FeignClient的配置 configuration。
+		 * FeignContext注册到容器是在 FeignAutoConfiguration 上完成的; 在初始化FeignContext时，会把 configurations 放入 FeignContext中。
+		 * configurations 的来源就是在前面 FeignClientsRegistrar#registerFeignClients 注册Feign接口时，接口的 @FeignClient 的配置 configuration。
 		 */
 		FeignContext context = this.applicationContext.getBean(FeignContext.class);
-		// 构建出Builder对象 用于构造代理对象，builder将会构建出 feign 的代理，
+		// 构建出Builder对象 用于构造代理对象，builder 将会构建出 feign 的代理
+		// Feign client 属性配置 encode decode 注解处理器等等
 		Feign.Builder builder = feign(context);// builder= Feign$Builder
-		if (!StringUtils.hasText(this.url)) {  // 没在@FigenClient注解中配 url
+		if (!StringUtils.hasText(this.url)) {  // 没在@FeignClient 注解中配 url
 			if (!this.name.startsWith("http")) {
 				this.url = "http://" + this.name;
 			}
