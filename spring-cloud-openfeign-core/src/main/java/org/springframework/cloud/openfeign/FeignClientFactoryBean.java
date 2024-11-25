@@ -274,7 +274,7 @@ class FeignClientFactoryBean
 		FeignContext context = this.applicationContext.getBean(FeignContext.class);
 		// 构建出Builder对象 用于构造代理对象，builder将会构建出 feign 的代理，
 		Feign.Builder builder = feign(context);// builder= Feign$Builder
-		if (!StringUtils.hasText(this.url)) { // 没在@FigenClient注解中配 url
+		if (!StringUtils.hasText(this.url)) {  // 没在@FigenClient注解中配 url
 			if (!this.name.startsWith("http")) {
 				this.url = "http://" + this.name;
 			}

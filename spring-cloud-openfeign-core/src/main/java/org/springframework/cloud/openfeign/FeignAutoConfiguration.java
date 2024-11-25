@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 @EnableConfigurationProperties({ FeignClientProperties.class,
 		FeignHttpClientProperties.class })
 @Import(DefaultGzipDecoderConfiguration.class)
-/**xxx: Feign 客户端主动配置类*/
+/**xxx: Feign 客户端自动配置类*/
 public class FeignAutoConfiguration {
 
 	@Autowired(required = false)
