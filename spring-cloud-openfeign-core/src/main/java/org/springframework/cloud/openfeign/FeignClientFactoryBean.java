@@ -42,7 +42,7 @@ import java.util.Objects;
  * @author Eko Kurniawan Khannedy
  * @author Gregor Zurowski
  */
-// 代表一个 @FeignClient 的 bean
+// 代表一个 @FeignClient 的 bean，其上注解解析在扫描的时候解析并赋值到当期 FeignClientFactoryBean 对象中
 class FeignClientFactoryBean
 		implements FactoryBean<Object>, InitializingBean, ApplicationContextAware {
 
@@ -84,6 +84,7 @@ class FeignClientFactoryBean
 		FeignLoggerFactory loggerFactory = get(context, FeignLoggerFactory.class);
 		Logger logger = loggerFactory.create(this.type);
 
+		// feign 代理对象配置构造器
 		// feign 默认配置
 		// @formatter:off
 		Feign.Builder builder = get(context, Feign.Builder.class)
@@ -92,10 +93,11 @@ class FeignClientFactoryBean
 				.encoder(get(context, Encoder.class)) // 编码器，从容器中获取：容器注入 bean则全局配置，局部配置 #feign.client.config.【@FeignClient 的name值】.encoder=类的全限定名称
 				.decoder(get(context, Decoder.class)) // 解码器，从容器中获取
 				// 合约器：定义哪些注释和值在接口上有效，@See SpringMvcContract。
-				// @PathVariable、@RequestParam、 @RequestHeader 等参数注解处理， @see AnnotatedParameterProcessor
+				// 方法上 @PathVariable、@RequestParam、 @RequestHeader 等参数注解处理， @see AnnotatedParameterProcessor
 				// 将参数对象 Map 化， @see QueryMapEncoder
 				.contract(get(context, Contract.class));
 		// @formatter:on
+		// builder.invocationHandlerFactory() 可以修改 代理对象的执行
 
 		// feign 定制化配置
 		configureFeign(context, builder);
@@ -288,7 +290,7 @@ class FeignClientFactoryBean
 		 */
 		FeignContext context = this.applicationContext.getBean(FeignContext.class);
 		// 构建出Builder对象 用于构造代理对象，builder 将会构建出 feign 的代理
-		// Feign client 属性配置 encode decode 注解处理器等等
+		// Feign client 属性配置 encoder、decoder、注解处理器等等
 		Feign.Builder builder = feign(context);// builder= Feign$Builder
 		if (!StringUtils.hasText(this.url)) {  // 没在@FeignClient 注解中配 url
 			if (!this.name.startsWith("http")) {
@@ -307,6 +309,7 @@ class FeignClientFactoryBean
 			this.url = "http://" + this.url;
 		}
 		String url = this.url + cleanPath();
+		// 从容器中获取客户端
 		Client client = getOptional(context, Client.class);
 		if (client != null) {
 			if (client instanceof LoadBalancerFeignClient) {
@@ -321,7 +324,7 @@ class FeignClientFactoryBean
 			}
 			builder.client(client);
 		}
-		// 生成默认代理类
+		// 生成默认代理类 @see HystrixTargeter
 		Targeter targeter = get(context, Targeter.class);
 		return (T) targeter.target(this, builder, context,
 				new HardCodedTarget<>(this.type, this.name, url));

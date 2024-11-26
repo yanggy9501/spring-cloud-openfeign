@@ -69,6 +69,7 @@ import static org.springframework.core.annotation.AnnotatedElementUtils.findMerg
  * @author Aram Peres
  * @author Olga Maciaszek-Sharma
  */
+/** xxx: Spring MVC 整合 feign 合约 @see parseAndValidateXXX 类上、方法上的注解 */
 public class SpringMvcContract extends Contract.BaseContract
 		implements ResourceLoaderAware {
 
@@ -163,6 +164,11 @@ public class SpringMvcContract extends Contract.BaseContract
 		this.resourceLoader = resourceLoader;
 	}
 
+	/**
+	 * 解析方法所在类的注解信息
+	 * @param data metadata collected so far relating to the current java method.
+	 * @param clz the class to process
+	 */
 	@Override
 	protected void processAnnotationOnClass(MethodMetadata data, Class<?> clz) {
 		if (clz.getInterfaces().length == 0) {
@@ -182,14 +188,20 @@ public class SpringMvcContract extends Contract.BaseContract
 		}
 	}
 
+	/**
+	 * 解析 feign 接口方法的注解
+	 * @param targetType
+	 * @param method
+	 * @return
+	 */
 	@Override
 	public MethodMetadata parseAndValidateMetadata(Class<?> targetType, Method method) {
 		this.processedMethods.put(Feign.configKey(targetType, method), method);
-		MethodMetadata md = super.parseAndValidateMetadata(targetType, method);
+		MethodMetadata md = super.parseAndValidateMetadata(targetType, method); // 调用父类解析注解（类、方法、参数），父类调用子类进行解析，包括 请求头Map，QueryPath的map位置等等
 
 		RequestMapping classAnnotation = findMergedAnnotation(targetType,
 				RequestMapping.class);
-		if (classAnnotation != null) {
+		if (classAnnotation != null) { // 方法级别的优先，若没有则使用类注解上的
 			// produces - use from class annotation only if method has not specified this
 			if (!md.template().headers().containsKey(ACCEPT)) {
 				parseProduces(md, method, classAnnotation);
@@ -207,6 +219,13 @@ public class SpringMvcContract extends Contract.BaseContract
 		return md;
 	}
 
+	/**
+	 * 解析方法的注解
+	 *
+	 * @param data metadata collected so far relating to the current java method.
+	 * @param methodAnnotation annotations present on the current method annotation.
+	 * @param method method currently being processed.
+	 */
 	@Override
 	protected void processAnnotationOnMethod(MethodMetadata data,
 			Annotation methodAnnotation, Method method) {
@@ -216,7 +235,7 @@ public class SpringMvcContract extends Contract.BaseContract
 		}
 
 		RequestMapping methodMapping = findMergedAnnotation(method, RequestMapping.class);
-		// HTTP Method
+		// HTTP Method，feign 只支持一种请求 post|get|put|...
 		RequestMethod[] methods = methodMapping.method();
 		if (methods.length == 0) {
 			methods = new RequestMethod[] { RequestMethod.GET };
@@ -224,7 +243,7 @@ public class SpringMvcContract extends Contract.BaseContract
 		checkOne(method, methods, "method");
 		data.template().method(Request.HttpMethod.valueOf(methods[0].name()));
 
-		// path
+		// path，请求路径只能有一个（与接收请求不同）
 		checkAtMostOne(method, methodMapping.value(), "value");
 		if (methodMapping.value().length > 0) {
 			String pathValue = emptyToNull(methodMapping.value()[0]);
@@ -234,14 +253,14 @@ public class SpringMvcContract extends Contract.BaseContract
 				if (!pathValue.startsWith("/") && !data.template().path().endsWith("/")) {
 					pathValue = "/" + pathValue;
 				}
-				data.template().uri(pathValue, true);
+				data.template().uri(pathValue, true);// 增加方法上的请求路径
 			}
 		}
 
-		// produces
+		// produces 请求头 Accept
 		parseProduces(data, method, methodMapping);
 
-		// consumes
+		// consumes 请求头 Content-Type
 		parseConsumes(data, method, methodMapping);
 
 		// headers
@@ -272,6 +291,15 @@ public class SpringMvcContract extends Contract.BaseContract
 				fieldName, values == null ? null : Arrays.asList(values));
 	}
 
+	/**
+	 * 解析方法参数上的注解（@PathVariable、@Header，@RequestParam，自定义注解），是否是一个请求体参数（false），请求体参数只能有一个
+	 *	false 则参数放在请求体中
+	 * @param data metadata collected so far relating to the current java method.
+	 * @param annotations annotations present on the current parameter annotation.
+	 * @param paramIndex if you find a name in {@code annotations}, call
+	 *        {@link #nameParam(MethodMetadata, String, int)} with this as the last parameter.
+	 * @return
+	 */
 	@Override
 	protected boolean processAnnotationsOnParameter(MethodMetadata data,
 			Annotation[] annotations, int paramIndex) {

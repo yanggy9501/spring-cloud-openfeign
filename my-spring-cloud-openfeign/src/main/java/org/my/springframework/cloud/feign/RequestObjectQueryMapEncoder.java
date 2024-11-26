@@ -1,22 +1,16 @@
 package org.my.springframework.cloud.feign;
 
-import feign.QueryMapEncoder;
-import feign.codec.EncodeException;
-import org.springframework.util.ClassUtils;
-
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 把 @RequestObject 对象编码为查询参数 ap对象 (MethodMetadata.queryMapIndex是唯一可以自定义对象编码的契机了)
  */
-public class RequestObjectQueryMapEncoder implements QueryMapEncoder {
+//public class RequestObjectQueryMapEncoder implements QueryMapEncoder {
+public class RequestObjectQueryMapEncoder {
 	private final ConcurrentHashMap<Class<?>, List<Field>> fieldMap = new ConcurrentHashMap<>();
 	private final DateTimeFormatter LOCAL_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private final DateTimeFormatter LOCAL_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -34,20 +28,20 @@ public class RequestObjectQueryMapEncoder implements QueryMapEncoder {
 		}
 	}
 
-	@Override
-	public Map<String, Object> encode(Object object) {
-		if (ClassUtils.isPrimitiveOrWrapper(object.getClass())) {
-			throw new EncodeException("@ParamObject can't be primitive or wrapper type");
-		}
-		Class<?> clazz = object.getClass();
-		List<Field> fieldList = fieldMap.computeIfAbsent(clazz, this::fieldList);
-        /*List<Field> fieldList = fieldMap.get(clazz);
-        if (fieldList == null) {
-            fieldList = fieldList(clazz);
-            fieldMap.put(clazz, fieldList);
-        }*/
-		Map<String, Object> map = new HashMap<>(fieldList.size());
-		try {
+//	@Override
+//	public Map<String, Object> encode(Object object) {
+//		if (ClassUtils.isPrimitiveOrWrapper(object.getClass())) {
+//			throw new EncodeException("@ParamObject can't be primitive or wrapper type");
+//		}
+//		Class<?> clazz = object.getClass();
+//		List<Field> fieldList = fieldMap.computeIfAbsent(clazz, this::fieldList);
+//        /*List<Field> fieldList = fieldMap.get(clazz);
+//        if (fieldList == null) {
+//            fieldList = fieldList(clazz);
+//            fieldMap.put(clazz, fieldList);
+//        }*/
+//		Map<String, Object> map = new HashMap<>(fieldList.size());
+//		try {
 //			for (Field field : fieldList) {
 //				Object fieldObj = field.get(object);
 //				if (fieldObj == null) {
@@ -120,11 +114,11 @@ public class RequestObjectQueryMapEncoder implements QueryMapEncoder {
 //					map.put(name, fieldObj);
 //				}
 //			}
-			return map;
-		} catch (Exception e) {
-			throw new EncodeException("Fail encode ParamObject into query Map", e);
-		}
-	}
+//			return map;
+//		} catch (Exception e) {
+//			throw new EncodeException("Fail encode ParamObject into query Map", e);
+//		}
+//	}
 
 	private List<Field> fieldList(Class<?> clazz) {
 		List<Field> fields = new ArrayList<>();
