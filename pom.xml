@@ -138,6 +138,7 @@
 		<module>spring-cloud-starter-openfeign</module>
 		<module>docs</module>
         <module>my-spring-cloud-openfeign</module>
+        <module>my-srping-cloud-openfeign-test</module>
     </modules>
 	<profiles>
 		<profile>

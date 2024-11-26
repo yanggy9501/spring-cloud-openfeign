@@ -2,20 +2,6 @@ package org.my.springframework.cloud.feign;
 
 //import feign.Contract;
 //import feign.Feign;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.openfeign.AnnotatedParameterProcessor;
-import org.springframework.cloud.openfeign.annotation.PathVariableParameterProcessor;
-import org.springframework.cloud.openfeign.annotation.RequestHeaderParameterProcessor;
-import org.springframework.cloud.openfeign.annotation.RequestParamParameterProcessor;
-import org.springframework.cloud.openfeign.support.SpringMvcContract;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
-import org.springframework.core.convert.ConversionService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 为支持复杂对象类型查询参数自动配置类

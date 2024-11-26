@@ -2,8 +2,6 @@ package org.my.springframework.cloud.feign;
 
 import org.my.springframework.cloud.feign.annotation.RequestObject;
 import org.springframework.cloud.openfeign.AnnotatedParameterProcessor;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;

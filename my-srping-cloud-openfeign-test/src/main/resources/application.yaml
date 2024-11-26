@@ -1,0 +1,5 @@
+feign:
+  client:
+    config:
+        RpcApi1:
+          encoder: org.my.springframework.cloud.feign.support.RpcSpringEncoder
