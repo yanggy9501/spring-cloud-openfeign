@@ -53,6 +53,7 @@ import static org.springframework.cloud.netflix.ribbon.RibbonUtils.updateToSecur
  * @author Tim Ysewyn
  * @author Olga Maciaszek-Sharma
  */
+/** feign 的负载均衡器 #execute */
 public class FeignLoadBalancer extends
 		AbstractLoadBalancerAwareClient<FeignLoadBalancer.RibbonRequest, FeignLoadBalancer.RibbonResponse> {
 
@@ -66,6 +67,11 @@ public class FeignLoadBalancer extends
 
 	protected ServerIntrospector serverIntrospector;
 
+	/**
+	 * @param lb 负载均衡
+	 * @param clientConfig
+	 * @param serverIntrospector
+	 */
 	public FeignLoadBalancer(ILoadBalancer lb, IClientConfig clientConfig,
 			ServerIntrospector serverIntrospector) {
 		super(lb, clientConfig);
