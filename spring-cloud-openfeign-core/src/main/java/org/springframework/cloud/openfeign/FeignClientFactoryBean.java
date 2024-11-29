@@ -312,6 +312,7 @@ class FeignClientFactoryBean
 		// 从容器中获取客户端
 		Client client = getOptional(context, Client.class);
 		if (client != null) {
+			// 直连方式与负载均衡方式不同的地方在这里，直连直接选 Delegate Client 发起请求，负载均衡则根据name选一个Client
 			if (client instanceof LoadBalancerFeignClient) {
 				// not load balancing because we have a url,
 				// but ribbon is on the classpath, so unwrap
