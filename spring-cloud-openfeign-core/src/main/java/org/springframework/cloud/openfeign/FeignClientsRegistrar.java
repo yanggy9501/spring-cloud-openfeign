@@ -192,7 +192,7 @@ class FeignClientsRegistrar
 					new AllTypeFilter(Arrays.asList(filter, annotationTypeFilter)));
 		}
 
-		// 拿到 @EnableFeignClients 中配置的 @FeignClient 接口扫描路径 后开始 扫描
+		// 拿到 @EnableFeignClients 中配置的 @FeignClient 接口扫描路径，然后开始扫描
 		for (String basePackage : basePackages) {
 			// 查找 basePackage 包路径下所有 由 @FeignClient 修饰的候选bean,返回其 BeanDefinition 的集合
 			Set<BeanDefinition> candidateComponents = scanner
@@ -240,7 +240,7 @@ class FeignClientsRegistrar
 	}
 
 	/**
-	 * 向容器中注册 每个标注了 @FeignClient 的接口bean
+	 * 向容器中注册每个标注了 @FeignClient 的接口bean
 	 * @param registry
 	 * @param annotationMetadata Feign 客户端类的所有注解信息
 	 * @param attributes @FeignClient 注解的所有属性信息

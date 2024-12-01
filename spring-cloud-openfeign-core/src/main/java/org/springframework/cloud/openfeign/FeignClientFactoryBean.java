@@ -92,7 +92,7 @@ class FeignClientFactoryBean
 				.logger(logger) // 设置日志
 				.encoder(get(context, Encoder.class)) // 编码器，从容器中获取：容器注入 bean则全局配置，局部配置 #feign.client.config.【@FeignClient 的name值】.encoder=类的全限定名称
 				.decoder(get(context, Decoder.class)) // 解码器，从容器中获取
-				// 合约器：定义哪些注释和值在接口上有效，@See SpringMvcContract。
+				// 合约器（注解处理器）：定义哪些注释和值在接口上有效，@See SpringMvcContract。
 				// 方法上 @PathVariable、@RequestParam、 @RequestHeader 等参数注解处理， @see AnnotatedParameterProcessor
 				// 将参数对象 Map 化， @see QueryMapEncoder
 				.contract(get(context, Contract.class));
