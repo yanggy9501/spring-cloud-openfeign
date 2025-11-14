@@ -69,7 +69,15 @@ import static org.springframework.core.annotation.AnnotatedElementUtils.findMerg
  * @author Aram Peres
  * @author Olga Maciaszek-Sharma
  */
-/** xxx: Spring MVC 整合 feign 合约 @see parseAndValidateXXX 类上、方法上的注解 */
+/** xxx: Spring MVC 整合 feign 合约 @see parseAndValidateXXX 类上、方法上的注解
+ * @RequestMapping
+ * @RequestBody
+ * @PathVariable
+ * @RequestParam
+ * @RequestHeader
+ * URI
+ * 解析然后放在 @see MethodMetadata 中保存元数据
+ */
 public class SpringMvcContract extends Contract.BaseContract
 		implements ResourceLoaderAware {
 
